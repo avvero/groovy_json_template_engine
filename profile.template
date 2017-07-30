@@ -1,9 +1,0 @@
-profile {
-
-    timestamp new Date().time
-
-    id data.id
-    name data.name
-    created data.created
-    verified data.verified
-}

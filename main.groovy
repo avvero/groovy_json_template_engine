@@ -1,3 +1,4 @@
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.text.markup.MarkupTemplateEngine
 import groovy.text.markup.TemplateConfiguration
@@ -11,7 +12,7 @@ def config = new TemplateConfiguration()
 config.baseTemplateClass = JSONTemplate.class
 
 def engine = new MarkupTemplateEngine(config)
-def template = engine.createTemplate(new File('profile.template'))
+def template = engine.createTemplate(new File('template/profile.groovy'))
 
 def t = new Date().time
 1.times {
@@ -25,4 +26,16 @@ def t = new Date().time
     thread.join()
 }
 t = new Date().time - t
-println (t / 1000)
+println(t / 1000)
+
+println "------------------"
+
+def engine2 = new GroovyScriptEngine("template")
+
+t = new Date().time
+1.times {
+    def greeter = engine2.run('profile.groovy', new Binding(binding))
+    println JsonOutput.toJson(greeter)
+}
+t = new Date().time - t
+println(t / 1000)

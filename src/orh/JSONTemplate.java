@@ -10,6 +10,7 @@ import groovy.text.markup.MarkupTemplateEngine;
 import groovy.text.markup.TemplateConfiguration;
 import org.codehaus.groovy.control.io.NullWriter;
 import org.codehaus.groovy.runtime.ExceptionUtils;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
 import java.io.IOException;
@@ -17,10 +18,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static groovy.xml.XmlUtil.escapeXml;
 
@@ -53,6 +51,23 @@ public abstract class JSONTemplate extends BaseTemplate {
         return result.toString();
     }
 
+    public Object iterator(String tagName, Object args) throws IOException {
+        return null;
+    }
+
+    public Object iterator(Object args) throws IOException {
+        return null;
+    }
+
+    public Object iterator() throws IOException {
+        return null;
+    }
+
+    public static <T> T each(T self, Closure closure) {
+//        each(InvokerHelper.asIterator(self), closure);
+        return self;
+    }
+
     public Object methodMissing(String tagName, Object args) throws IOException {
         Object o = getModel().get(tagName);
         if (o instanceof Closure) {
@@ -76,6 +91,25 @@ public abstract class JSONTemplate extends BaseTemplate {
                     map = currentMap;
                 } else {
                     currentMap.put(tagName, body);
+                }
+            }
+            Map attributes = tagData.attributes;
+            if (attributes != null) {
+                Set<Map.Entry> entries = attributes.entrySet();
+                for (Map.Entry e : entries) {
+                    if (e.getValue() != null) {
+                        Map currentMap = map;
+                        Map entryMap = new HashMap();
+                        if (e.getValue() instanceof Closure) {
+                            currentMap.put(e.getKey(), entryMap);
+
+                            map = entryMap;
+                            ((Closure) e.getValue()).call();
+                            map = currentMap;
+                        } else {
+                            currentMap.put(e.getKey(), e.getValue());
+                        }
+                    }
                 }
             }
         }
